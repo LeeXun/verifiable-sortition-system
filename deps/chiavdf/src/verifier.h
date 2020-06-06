@@ -11,13 +11,38 @@
 
 void VerifyWesolowskiProof(integer &D, form x, form y, form proof, uint64_t iters, bool &is_valid)
 {
+    
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     PulmarkReducer reducer;
     int int_size = (D.num_bits() + 16) >> 4;
+    std::chrono::steady_clock::time_point b2, e2;
+    // < 1ms
+    b2 = std::chrono::steady_clock::now();
     integer L = root(-D, 4);
+    e2 = std::chrono::steady_clock::now();
+    std::cout << "[Time]L = " << std::chrono::duration_cast<std::chrono::milliseconds> (e2 - b2).count() << "[ms]" << std::endl;
+    
+    // 700ms
+    b2 = std::chrono::steady_clock::now();
+    // GetB returns the base number for Fiat-Shamir
     integer B = GetB(D, x, y);
+    e2 = std::chrono::steady_clock::now();
+    std::cout << "[Time]B = " << std::chrono::duration_cast<std::chrono::milliseconds> (e2 - b2).count() << "[ms]" << std::endl;
+    
+    // < 1ms
+    b2 = std::chrono::steady_clock::now();
     integer r = FastPow(2, iters, B);
+    e2 = std::chrono::steady_clock::now();
+    std::cout << "[Time]r = " << std::chrono::duration_cast<std::chrono::milliseconds> (e2 - b2).count() << "[ms]" << std::endl;
+
+    std::cout << "B = " << B.to_string() << std::endl;
+    std::cout << "r = " << r.to_string() << std::endl;
+
+    b2 = std::chrono::steady_clock::now();
     form f1 = FastPowFormNucomp(proof, D, B, L, reducer);
     form f2 = FastPowFormNucomp(x, D, r, L, reducer);
+    e2 = std::chrono::steady_clock::now();
+    std::cout << "[Time]f1, f2 = " << std::chrono::duration_cast<std::chrono::milliseconds> (e2 - b2).count() << "[ms]" << std::endl;
     if (f1 * f2 == y)
     {
         is_valid = true;
@@ -26,6 +51,10 @@ void VerifyWesolowskiProof(integer &D, form x, form y, form proof, uint64_t iter
     {
         is_valid = false;
     }
+
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    std::cout << "VerifyWesolowskiProof = " << std::chrono::duration_cast<std::chrono::milliseconds> (end - begin).count() << "[ms]" << std::endl;
+    
 }
 
 integer ConvertBytesToInt(uint8_t *bytes, int start_index, int end_index)

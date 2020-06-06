@@ -26,14 +26,17 @@ std::vector<unsigned char> ConvertIntegerToBytes(integer x, uint64_t num_bytes) 
 // Randomly chooses x with bit-length `length`, then applies a mask
 //   (for b in bitmask) { x |= (1 << b) }.
 // Then return x if it is a psuedoprime, otherwise repeat.
-integer HashPrime(std::vector<uint8_t> seed, int length, vector<int> bitmask) {
+integer HashPrime(std::vector<uint8_t> seed, int length, vector<int> bitmask, int iteration = 0) {
     assert (length % 8 == 0);
     std::vector<uint8_t> hash(picosha2::k_digest_size);  // output of sha256
     std::vector<uint8_t> blob;  // output of 1024 bit hash expansions
     std::vector<uint8_t> sprout = seed;  // seed plus nonce
-
+    int ii = 0;
     while (true) {  // While prime is not found
         blob.resize(0);
+        // cuz sha256 returns 32 bytes
+        // repeat it to fill blob
+        ii++;
         while ((int) blob.size() * 8 < length) {
             // Increment sprout by 1
             for (int i = (int) sprout.size() - 1; i >= 0; --i) {
@@ -50,8 +53,18 @@ integer HashPrime(std::vector<uint8_t> seed, int length, vector<int> bitmask) {
         integer p(blob);  // p = 7 (mod 8), 2^1023 <= p < 2^1024
         for (int b: bitmask)
             p.set_bit(b, true);
-        if (p.prime())
+        std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+        if (p.prime()) {
+            std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+            std::cout << std::chrono::duration_cast<std::chrono::milliseconds> (end - begin).count() << ",";
+            std::cout << ii << ",";
+            // std::cout << "prime = " << std::chrono::duration_cast<std::chrono::milliseconds> (end - begin).count() << " [ms]" << std::endl;
+            // std::cout << "HashPrime i = " << ii << std::endl;
             return p;
+        }
+        // if (iteration != 0 && ii != iteration) {
+        //     continue;
+        // } else {
     }
 }
 
@@ -109,7 +122,10 @@ form FastPowFormNucomp(form x, integer &D, integer num_iterations, integer &L, P
 {
     form res = form::identity(D);
     int D_size = D.impl->_mp_size;
-
+    // Potential max iterations that would be performed 264 bits
+    // integer num_iterations(
+    //     "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    // );
     while (1) {
         if (num_iterations.get_bit(0)) {
             nucomp_form(res, res, x, D, L);

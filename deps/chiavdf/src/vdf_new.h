@@ -165,6 +165,11 @@ struct form {
         uint64 res=c.to_vector()[0];
         return int((res>>4) & ((1ull<<31)-1)); //ignoring some of the lower bits because they might not be random enough
     }
+
+    void print() {
+        std::cout << "a = " << a.to_string() << "\n";
+        std::cout << "b = " << b.to_string() << "\n";
+    }
 };
 
 integer generate_discriminant(int num_bits, int seed=-1) {

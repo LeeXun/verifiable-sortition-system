@@ -100,6 +100,12 @@ std::vector<uint8_t> ProveSlow(std::vector<uint8_t>& challenge_hash, int discrim
     form proof = GenerateWesolowski(y, x, D, reducer, intermediates, num_iterations, k, l);
     std::vector<uint8_t> result = SerializeForm(y, int_size);
     std::vector<uint8_t> proof_bytes = SerializeForm(proof, int_size);
+    std::cout << "x: \n";
+    x.print();
+    std::cout << "y: \n";
+    y.print();
+    std::cout << "proof: \n";
+    proof.print();
     result.insert(result.end(), proof_bytes.begin(), proof_bytes.end());
     return result;
 }

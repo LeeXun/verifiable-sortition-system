@@ -1,0 +1,10 @@
+{
+  "files.associations": {
+    "[Dd]ockerfile*": "dockerfile",
+    "*.dockerignore": "text",
+    "docker-compose*": "yaml",
+    "chrono": "cpp",
+    "__functional_03": "cpp",
+    "functional": "cpp"
+  }
+}

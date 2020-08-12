@@ -1,4 +1,4 @@
-.PHONY: plot
+.PHONY: plot merkle
 # LDLIBS += -lgmpxx -lgmp -lboost_system -pthread
 # LDLIBS += -lgmpxx -lgmp
 # https://stackoverflow.com/questions/41080815/compiling-gmp-mpfr-with-emscripten
@@ -20,6 +20,9 @@ wasm:
 	-s WASM=1 -o tmp/test/index.html
 	# EMCC_DEBUG=1 
 	# -s DISABLE_EXCEPTION_CATCHING=0 \
+
+merkle:
+	cd merkle && GOOS=js GOARCH=wasm go build -o main.wasm
 
 verifier:
 	# EMCC_DEBUG=1 emcc -O3 --bind -o tmp/verifier/verifier.js verifier.cpp

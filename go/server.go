@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/google/trillian"
+	"github.com/google/trillian/merkle"
 	"github.com/google/trillian/merkle/rfc6962"
 	"github.com/google/trillian/types"
 	"google.golang.org/grpc/codes"
@@ -18,9 +19,10 @@ type server struct {
 
 // MyResponse is MyResponse
 type MyResponse struct {
-	Root   types.LogRootV1
-	Proof  []*trillian.Proof
-	Status string
+	Root     types.LogRootV1
+	Proof    []*trillian.Proof
+	LeafHash []byte
+	Status   string
 }
 
 func newServer(client trillian.TrillianLogClient, logID int64) *server {
@@ -122,23 +124,26 @@ func (s *server) wait(r *Request) (*MyResponse, error) {
 		return &MyResponse{}, nil
 	}
 
-	// v := merkle.NewLogVerifier(rfc6962.DefaultHasher)
-	// for i, proof := range resp.Proof {
-	// 	hashes := proof.GetHashes()
-	// 	for j, hash := range hashes {
-	// 		log.Printf("[main] proof[%d],hash[%d] == %x\n", i, j, hash)
-	// 	}
-	// 	if err := v.VerifyInclusionProof(proof.LeafIndex, int64(root.TreeSize), hashes, root.RootHash, leafHash); err != nil {
-	// 		return &Response{}, err
-	// 	}
-	// }
+	v := merkle.NewLogVerifier(rfc6962.DefaultHasher)
+	for i, proof := range resp.Proof {
+		hashes := proof.GetHashes()
+		for j, hash := range hashes {
+			log.Printf("[main] proof[%d],hash[%d] == %x\n", i, j, hash)
+		}
+		if err := v.VerifyInclusionProof(proof.LeafIndex, int64(root.TreeSize), hashes, root.RootHash, leafHash); err != nil {
+			return &MyResponse{}, err
+		} else {
+			log.Printf("[main] ok\n")
+		}
+	}
 	// return &Response{
 	// 	status: "ok",
 	// }, nil
 	return &MyResponse{
-		Root:   root,
-		Proof:  resp.Proof,
-		Status: "ok",
+		Root:     root,
+		Proof:    resp.Proof,
+		LeafHash: leafHash,
+		Status:   "ok",
 	}, nil
 }
 func (s *server) get(r *Request) (*Response, error) {
